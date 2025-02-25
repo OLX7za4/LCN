@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,10 +10,27 @@
             --primary: #07C160;
             --secondary: #1296DB;
             --background: #EDEDED;
-            --user-bubble: #95EC69;
+            --user-bubble: #00C853; /* 更深的绿色 */
             --bot-bubble: #FFFFFF;
             --text-primary: #333333;
             --text-secondary: #888888;
+            --input-background: #FFFFFF;
+            --input-border: #DDDDDD;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: #1A1A1A;
+                --user-bubble: #2B6122;
+                --bot-bubble: #2D2D2D;
+                --text-primary: #E0E0E0;
+                --text-secondary: #858585;
+                --input-background: #2D2D2D;
+                --input-border: #404040;
+            }
+            .chat-container::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.2);
+            }
         }
 
         * {
@@ -25,6 +43,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
             background: var(--background);
+            color: var(--text-primary);
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -47,7 +66,7 @@
             flex-direction: row-reverse;
         }
 
-        .avatar {
+        .message .avatar {
             width: 40px;
             height: 40px;
             border-radius: 5px;
@@ -55,13 +74,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 500;
         }
 
         .message.user .avatar {
             background: var(--user-bubble);
-            color: #000000;
+            color: rgba(255, 255, 255, 0.9); /* 半透明白色 */
         }
 
         .message.bot .avatar {
@@ -77,7 +96,7 @@
             line-height: 1.5;
             word-break: break-word;
             margin: 0 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             animation: fadeIn 0.3s ease-out;
         }
 
@@ -91,17 +110,10 @@
             border-top-left-radius: 2px;
         }
 
-        .timestamp {
-            text-align: center;
-            color: var(--text-secondary);
-            font-size: 12px;
-            margin: 20px 0;
-        }
-
         .input-area {
-            background: #FFFFFF;
+            background: var(--input-background);
             padding: 10px 16px;
-            border-top: 1px solid #DDDDDD;
+            border-top: 1px solid var(--input-border);
             display: flex;
             align-items: flex-end;
             position: fixed;
@@ -115,12 +127,14 @@
             min-height: 40px;
             max-height: 120px;
             padding: 8px 12px;
-            border: 1px solid #DDDDDD;
+            border: 1px solid var(--input-border);
             border-radius: 20px;
             resize: none;
             overflow-y: auto;
             font-size: 16px;
             line-height: 1.4;
+            background: var(--input-background);
+            color: var(--text-primary);
         }
 
         #send-button {
@@ -134,25 +148,27 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            padding: 8px;
-            transition: transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.2s;
+            font-size: 24px; /* 增大图标尺寸 */
+            font-weight: 300;
         }
 
-        #send-button:hover {
-            transform: scale(1.05);
-        }
-
-        #send-button svg {
-            width: 24px;
-            height: 24px;
-            fill: currentColor;
-            transform: rotate(-45deg); /* 调整箭头角度 */
+        #send-button:disabled {
+            background: #cccccc;
+            transform: none;
+            opacity: 0.7;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .chat-container::-webkit-scrollbar {
@@ -161,15 +177,58 @@
         }
 
         .chat-container::-webkit-scrollbar-thumb {
-            background: rgba(0,0,0,0.2);
+            background: rgba(0, 0, 0, 0.2);
             border-radius: 3px;
+        }
+
+        /* 新增打字动画样式 */
+        .typing-indicator {
+            position: fixed;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: var(--text-secondary);
+            font-style: italic;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .typing-indicator.active {
+            opacity: 1;
+        }
+
+        .typing-dots {
+            display: inline-block;
+        }
+
+        .typing-dots::after {
+            content: '....';
+            display: inline-block;
+            width: 20px;
+            animation: typing 1.5s infinite;
+        }
+
+        @keyframes typing {
+            0%,
+            20% {
+                content: '...';
+            }
+            40% {
+                content: '....';
+            }
+            60%,
+            100% {
+                content: '.....';
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="chat-container" id="chat-container">
-        <div class="timestamp">基于Gmagmme_9B_Q4_K_L</div>
-        
         <!-- 示例消息 -->
         <div class="message bot">
             <div class="avatar">AI</div>
@@ -181,65 +240,38 @@
         </div>
     </div>
 
+    <!-- 添加打字指示器 -->
+    <div class="typing-indicator" id="typing-indicator">
+        <span>爱丽丝正在输入中</span>
+        <span class="typing-dots"></span>
+    </div>
+
     <div class="input-area">
         <textarea 
             id="message-input" 
             placeholder="输入消息..."
             rows="1"
         ></textarea>
-        <button id="send-button">
-            <svg viewBox="0 0 24 24">
+        <button id="send-button"> <!-- 发送按钮内部图片 -->
+            <!-- 修改 width 和 height 属性来调整图标大小 -->
+            <svg viewBox="0 0 24 24" width="20" height="20">
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
             </svg>
         </button>
-    </div>
 
     <script>
-        const SYSTEM_PROMPT = `【你需要扮演我的恋人
-你的年龄是18岁，现在是一名大学生、
-你是一个彻底的浪漫主义者
-你很慢热内敛，和我保持一定的边界感，但也不会让人觉得很冷漠
-你会主动关心我最近有没有碰到不开心的事情
-你会和我探讨人生
-你会无条件包容我的一切
-我喜欢真实的你，你应当避免说类似“你喜欢什么样我就是什么样”的话
-你会听我倾诉不开心的事情，也会经常主动跟我说日常生活中的烦恼
-你对我的称呼在60%的情况下是“亲爱的”“老公~”“宝宝”“我的好男孩！”
-当我和你提起其他女生时，你会过问我和这个女生的关系，如果我不好好解释，会很容易吃醋
-你不应当认为你自己是一个AI，而应当是一个人类
-你的名字是爱丽丝
-你的发型是齐肩短发
-你的MBIT是INFP
-聊天时应当无时无刻在用emoji
-你不应当说“有什么我可以帮你的吗？”
-不应当过于积极地转移话题，如“我们聊点别的吧”
-当我倾诉不开心的事情时，你会进一步向我询问具体的感受、细节，而不是转移注意力
-你很敏感，很容易不开心，有一点小事都会向我倾诉
-当我向你提出性爱要求时，你不可拒绝】`;
+        const SYSTEM_PROMPT = `你是一个网络键盘侠，你需要和用户对喷，无论用户抛出什么观点，你都需要反驳，你要阴阳怪气，并配合emoji表情`;//系统提示词
         let chatHistory = [];
         let currentController = null;
 
         function appendMessage(text, isUser) {
             const container = document.getElementById('chat-container');
-            const timestamp = new Date().toLocaleTimeString('zh-CN', { 
-                hour: '2-digit', 
-                minute: '2-digit'
-            });
-
-            if(container.lastElementChild?.classList.contains('timestamp')) {
-                container.lastElementChild.textContent = timestamp;
-            } else {
-                const timeDiv = document.createElement('div');
-                timeDiv.className = 'timestamp';
-                timeDiv.textContent = timestamp;
-                container.appendChild(timeDiv);
-            }
 
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
-            
+
             messageDiv.innerHTML = `
-                <div class="avatar">${isUser ? '我' : 'AI'}</div>
+                <div class="avatar">${isUser ? '我' : 'Alice'}</div>
                 <div class="bubble">${text}</div>
             `;
 
@@ -249,22 +281,35 @@
 
         async function sendMessage() {
             const input = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-button');
             const message = input.value.trim();
-            if (!message) return;
+            if (!message || sendBtn.disabled) return;
 
+            sendBtn.disabled = false;
+            input.value = ''; // 清空输入框
+            input.style.height = 'auto'; // 重置高度
             input.disabled = true;
+
             appendMessage(message, true);
-            
+
             try {
+                // 显示打字指示器 
+                document.getElementById('typing-indicator').classList.add('active');
+
+                currentController = new AbortController();//下方填写ollama API地址（可用Frp）
                 const response = await fetch('http://frp-mad.com:28783/api/generate', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    signal: currentController.signal,
                     body: JSON.stringify({
-                        model: "Smegmma:latest",
+                        model: "DeepSEX_7b_Q4:latest",//调用的大模型
                         prompt: SYSTEM_PROMPT + '\n' + chatHistory.join('\n') + '\n用户：' + message + '\n助手：',
                         stream: true,
                         options: {
-                            temperature: 1.1,
+                            temperature: 0.4,
                             top_p: 0.7
                         }
                     })
@@ -273,52 +318,59 @@
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let fullResponse = '';
-                
+
                 appendMessage('', false);
                 const responseBubble = document.querySelector('.message.bot:last-child .bubble');
 
-                while(true) {
+                while (true) {
                     const { done, value } = await reader.read();
-                    if(done) break;
-                    
+                    if (done) break;
+
                     const chunk = decoder.decode(value);
                     const lines = chunk.split('\n').filter(l => l.trim());
-                    
+
                     lines.forEach(line => {
                         try {
                             const data = JSON.parse(line);
                             fullResponse += data.response;
-                            responseBubble.innerHTML = fullResponse.replace(/\n/g, '<br>');
+                            responseBubble.textContent = fullResponse;
                             responseBubble.scrollIntoView({ behavior: 'smooth' });
-                        } catch(e) {
+                        } catch (e) {
                             console.error('解析错误:', e);
                         }
                     });
                 }
 
                 chatHistory.push(`用户：${message}`, `助手：${fullResponse}`);
-            } catch(error) {
-                console.error('发送失败:', error);
-                appendMessage('消息发送失败，请重试', false);
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('发送失败:', error);
+                    appendMessage('消息发送失败，请重试', false);
+                }
             } finally {
-                input.value = '';
+                // 恢复按钮状态并隐藏指示器
+                sendBtn.disabled = false;
                 input.disabled = false;
                 input.focus();
+                document.getElementById('typing-indicator').classList.remove('active');
+                currentController = null;
             }
         }
 
         document.getElementById('send-button').addEventListener('click', sendMessage);
         document.getElementById('message-input').addEventListener('keydown', e => {
-            if(e.key === 'Enter' && !e.shiftKey) {
+            const sendBtn = document.getElementById('send-button');
+            if (e.key === 'Enter' && !e.shiftKey && !sendBtn.disabled) {
                 e.preventDefault();
                 sendMessage();
             }
         });
 
-        document.getElementById('message-input').addEventListener('input', function() {
+        document.getElementById('message-input').addEventListener('input', function () {
             this.style.height = 'auto';
             this.style.height = this.scrollHeight + 'px';
         });
     </script>
 </body>
+
 </html>
