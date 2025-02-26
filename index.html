@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>爱丽丝聊天界面</title>
+    <title>智能聊天界面</title>
     <style>
         :root {
             --primary: #07C160;
@@ -16,6 +15,7 @@
             --text-secondary: #888888;
             --input-background: #FFFFFF;
             --input-border: #DDDDDD;
+            --shadow-color: rgba(0, 0, 0, 0.1);
         }
 
         @media (prefers-color-scheme: dark) {
@@ -27,8 +27,9 @@
                 --text-secondary: #858585;
                 --input-background: #2D2D2D;
                 --input-border: #404040;
+                --shadow-color: rgba(255, 255, 255, 0.1);
             }
-            .chat-container::-webkit-scrollbar-thumb {
+          .chat-container::-webkit-scrollbar-thumb {
                 background: rgba(255, 255, 255, 0.2);
             }
         }
@@ -47,84 +48,79 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
-        .chat-container {
+       .chat-container {
             flex: 1;
             overflow-y: auto;
             padding: 12px 16px 80px;
             scroll-behavior: smooth;
+            position: relative;
         }
 
-        /* 隐藏滚动条 */
-        .chat-container::-webkit-scrollbar {
-            width: 0;
+       .chat-container::-webkit-scrollbar {
+            width: 6px;
         }
 
-        .message {
+       .chat-container::-webkit-scrollbar-thumb {
+            background: var(--shadow-color);
+            border-radius: 3px;
+        }
+
+       .message {
             display: flex;
             margin: 15px 0;
             position: relative;
         }
 
-        .message.user {
-            flex-direction: row-reverse;
+       .message.user {
+            justify-content: flex-end;
         }
 
-        .message .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 5px;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: 500;
+       .message.bot {
+            justify-content: flex-start;
         }
 
-        .message.user .avatar {
-            background: var(--user-bubble);
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .message.bot .avatar {
-            background: #F0F0F0;
-            color: var(--text-primary);
-        }
-
-        .bubble {
+       .bubble {
             max-width: 75%;
             padding: 12px 16px;
-            border-radius: 8px;
+            border-radius: 10px;
             position: relative;
-            line-height: 1.5;
+            line-height: 1.6;
             word-break: break-word;
-            margin: 0 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin: 0 5px;
+            box-shadow: 0 2px 5px var(--shadow-color);
             animation: fadeIn 0.3s ease-out;
         }
 
-        .message.user .bubble {
+       .message.user.bubble {
             background: var(--user-bubble);
             border-top-right-radius: 2px;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            color: white;
         }
 
-        .message.bot .bubble {
+       .message.bot.bubble {
             background: var(--bot-bubble);
             border-top-left-radius: 2px;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
         }
 
-        .input-area {
+       .input-area {
             background: var(--input-background);
             padding: 10px 16px;
             border-top: 1px solid var(--input-border);
             display: flex;
-            align-items: flex-end;
+            align-items: center;
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
+            box-shadow: 0 -2px 5px var(--shadow-color);
+            z-index: 100;
         }
 
         #message-input {
@@ -140,6 +136,13 @@
             line-height: 1.4;
             background: var(--input-background);
             color: var(--text-primary);
+            box-shadow: inset 0 1px 3px var(--shadow-color);
+            transition: box-shadow 0.3s;
+            margin-right: 10px;
+        }
+
+        #message-input:focus {
+            box-shadow: inset 0 1px 3px var(--shadow-color), 0 0 5px var(--secondary);
         }
 
         #send-button {
@@ -147,14 +150,14 @@
             height: 40px;
             border: none;
             border-radius: 50%;
-            background: var(--primary);
+            background: blanchedalmond;
             color: white;
-            margin-left: 10px;
+            margin-right: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            transition: opacity 0.2s;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            transition: opacity 0.2s, transform 0.2s;
             font-size: 24px;
             font-weight: 300;
         }
@@ -165,21 +168,42 @@
             opacity: 0.7;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        #send-button:hover:not(:disabled) {
+            transform: scale(1.1);
+            background-color: rgb(246, 211, 155);
         }
 
-        /* 爱丽丝正在回复中 */
-        .typing-indicator {
+        #emoji-button {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: blanchedalmond;
+            color: var(--text-primary);
+            margin-left: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            transition: background-color 0.2s, transform 0.2s;
+            font-size: 24px;
+            font-weight: 300;
+            margin-right: 10px;
+        }
+
+        #emoji-button:hover {
+            background-color: rgb(246, 211, 155);
+            transform: scale(1.1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+       .typing-indicator {
             position: fixed;
-            bottom: 60px;
+            bottom: 65px;
             left: 0;
             right: 0;
             text-align: center;
@@ -190,27 +214,63 @@
             transition: opacity 0.3s;
             pointer-events: none;
         }
+        .typing-indicator::after {
+            content: '...';
+            display: inline-block;
+            overflow: hidden;
+            vertical-align: bottom;
+            animation: ellipsis steps(4, end) 1.5s infinite;
+            width: 0;
+            margin-left: -5px;
+        }
+        @keyframes ellipsis {
+            to { width: 1em; }
+        }
 
-        .typing-indicator.active {
+       .typing-indicator.active {
             opacity: 1;
+        }
+
+       .emoji-picker {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--input-background);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            padding: 10px;
+            display: none;
+            z-index: 99;
+        }
+
+       .emoji-picker button {
+            border: none;
+            background: transparent;
+            font-size: 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+       .emoji-picker button:hover {
+            color: var(--primary);
         }
     </style>
 </head>
-
 <body>
     <div class="chat-container" id="chat-container">
-        <!-- 示例消息 -->
         <div class="message bot">
-            <div class="avatar">AI</div>
-            <div class="bubble">你好呀～今天想聊点什么？😊</div>
+            <div class="bubble">你好呀！有什么想聊的，尽管开口😃</div>
         </div>
     </div>
 
     <div class="typing-indicator" id="typing-indicator">
-        <span>爱丽丝正在回复中</span>
+        <span>爱丽丝正在思考回复</span>
     </div>
 
     <div class="input-area">
+        <button id="emoji-button">😀</button>
         <textarea id="message-input" placeholder="输入消息..." rows="1"></textarea>
         <button id="send-button">
             <svg viewBox="0 0 24 24" width="20" height="20">
@@ -219,21 +279,28 @@
         </button>
     </div>
 
+    <div class="emoji-picker" id="emoji-picker">
+        <button>😀</button>
+        <button>😍</button>
+        <button>🤔</button>
+        <button>🎉</button>
+        <button>😢</button>
+        <button>😎</button>
+        <button>😜</button>
+        <button>🥳</button>
+        <button>🤗</button>
+        <button>😒</button>
+    </div>
+
     <script>
-        const SYSTEM_PROMPT = "这是一个系统提示词";
+        const SYSTEM_PROMPT = "你是一个亲切友好、知识渊博的助手，尽力为用户解答各种问题。";
         let chatHistory = [];
 
         function appendMessage(text, isUser) {
             const container = document.getElementById('chat-container');
-
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
-
-            messageDiv.innerHTML = `
-                <div class="avatar">${isUser ? '我' : 'Alice'}</div>
-                <div class="bubble">${text}</div>
-            `;
-
+            messageDiv.innerHTML = `<div class="bubble">${text}</div>`;
             container.appendChild(messageDiv);
             container.scrollTo(0, container.scrollHeight);
         }
@@ -247,13 +314,16 @@
             sendBtn.disabled = true;
             input.value = '';
             input.style.height = 'auto';
-
             appendMessage(message, true);
 
             const typingIndicator = document.getElementById('typing-indicator');
             typingIndicator.classList.add('active');
 
             try {
+                // 请求处理（含60秒超时，如果AI响应超过60S，则报错“”）
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 60000);
+
                 const response = await fetch('http://frp-oak.com:14882/api/generate', {
                     method: 'POST',
                     headers: {
@@ -263,65 +333,88 @@
                     body: JSON.stringify({
                         model: "Smegmma:latest",
                         prompt: SYSTEM_PROMPT + '\n' + chatHistory.join('\n') + '\n用户：' + message + '\n助手：',
-                        stream: true,
-                        options: {
-                            temperature: 0.4,
-                            top_p: 0.7
-                        }
-                    })
+                        stream: false,
+                        options: { temperature: 0.4, top_p: 0.7 }
+                    }),
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
 
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let fullResponse = '';
-
-                appendMessage('', false);
-                const responseBubble = document.querySelector('.message.bot:last-child .bubble');
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n').filter(l => l.trim());
-
-                    lines.forEach(line => {
-                        try {
-                            const data = JSON.parse(line);
-                            const newText = data.response;
-                            fullResponse += newText;
-                            responseBubble.textContent = fullResponse;
-                            responseBubble.scrollIntoView({ behavior: 'smooth' });
-                        } catch (e) {
-                            console.error('解析错误:', e);
-                        }
-                    });
+                // 处理HTTP错误
+                if (!response.ok) {
+                    const statusGroup = Math.floor(response.status / 100);
+                    const errorMap = {
+                        4: `请求错误 (${response.status})`,
+                        5: `服务器错误 (${response.status})`
+                    };
+                    throw new Error(errorMap[statusGroup] || `HTTP错误 (${response.status})`);
                 }
 
+                const data = await response.json();
+                
+                // 处理业务错误
+                if (data.error) {
+                    const errorMsg = data.error.includes('context') ? 
+                        '对话过长，请开始新对话' : '模型处理失败';
+                    throw new Error(errorMsg);
+                }
+
+                if (!data.response?.trim()) throw new Error('空响应内容');
+                
+                const fullResponse = data.response;
+                appendMessage(fullResponse, false);
                 chatHistory.push(`用户：${message}`, `助手：${fullResponse}`);
+
             } catch (error) {
-                console.error('发送失败:', error);
-                appendMessage('消息发送失败，请重试', false);
+                console.error('[DEBUG] 完整错误:', error);
+                
+                // 错误类型映射
+                const errorMessages = {
+                    'AbortError': '请求超时，请稍后重试',
+                    'NetworkError': '网络连接失败',
+                    'Failed to fetch': '无法连接服务器',
+                    '请求错误': '请求参数错误',
+                    '服务器错误': '服务器暂时不可用',
+                    '空响应内容': '模型返回了空内容',
+                    '对话过长': '对话过长，请开始新对话'
+                };
+
+                const friendlyMessage = Object.entries(errorMessages).find(([key]) => 
+                    error.message.includes(key)
+                )?.[1] || '消息发送失败，请重试';
+
+                appendMessage(friendlyMessage, false);
+
             } finally {
                 sendBtn.disabled = false;
                 typingIndicator.classList.remove('active');
             }
         }
 
+        // 事件监听器
         document.getElementById('send-button').addEventListener('click', sendMessage);
         document.getElementById('message-input').addEventListener('keydown', e => {
-            const sendBtn = document.getElementById('send-button');
-            if (e.key === 'Enter' && !e.shiftKey && !sendBtn.disabled) {
+            if (e.key === 'Enter' && !e.shiftKey && !document.getElementById('send-button').disabled) {
                 e.preventDefault();
                 sendMessage();
             }
         });
-
-        document.getElementById('message-input').addEventListener('input', function () {
+        document.getElementById('message-input').addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = this.scrollHeight + 'px';
         });
+
+        // 表情选择器
+        const emojiButton = document.getElementById('emoji-button');
+        const emojiPicker = document.getElementById('emoji-picker');
+        emojiButton.addEventListener('click', () => {
+            emojiPicker.style.display = emojiPicker.style.display === 'none' ? 'block' : 'none';
+        });
+        document.querySelectorAll('.emoji-picker button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('message-input').value += btn.textContent;
+            });
+        });
     </script>
 </body>
-
 </html>
