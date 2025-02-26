@@ -297,7 +297,7 @@
                 document.getElementById('typing-indicator').classList.add('active');
 
                 currentController = new AbortController();//下方填写ollama API地址（可用Frp）
-                const response = await fetch('http://frp-mad.com:28783/api/generate', {
+                const response = await fetch('http://frp-oak.com:14882/api/generate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
