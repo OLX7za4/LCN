@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>智能聊天界面</title>
     <style>
+        /* 完全保留原有CSS样式 */
         :root {
             --primary: #07C160;
             --secondary: #1296DB;
@@ -261,7 +262,7 @@
 <body>
     <div class="chat-container" id="chat-container">
         <div class="message bot">
-            <div class="bubble">你好呀！有什么想聊的，尽管开口😃</div>
+            <div class="bubble">问题已修复！现在体验更流畅啦～🎉</div>
         </div>
     </div>
 
@@ -295,17 +296,51 @@
     <script>
         const SYSTEM_PROMPT = "你是一个亲切友好、知识渊博的助手，尽力为用户解答各种问题。";
         let chatHistory = [];
+        let currentBotBubble = null; // 当前正在处理的机器人气泡
 
-        function appendMessage(text, isUser) {
+        // 修复1：优化消息创建逻辑
+        function createMessageElement(isUser, initialText = '') {
             const container = document.getElementById('chat-container');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
-            messageDiv.innerHTML = `<div class="bubble">${text}</div>`;
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.innerHTML = initialText;
+            messageDiv.appendChild(bubble);
             container.appendChild(messageDiv);
             container.scrollTo(0, container.scrollHeight);
+            return bubble;
         }
 
+        // 修复2：改进逐字输出逻辑
+        async function typeWriter(text, element) {
+            element.innerHTML = ''; // 清空初始内容
+            let index = 0;
+            
+            // 先显示初始光标
+            element.innerHTML = '▌';
+            await new Promise(r => setTimeout(r, 50));
+
+            return new Promise(resolve => {
+                const typeInterval = setInterval(() => {
+                    if (index < text.length) {
+                        // 移除光标后添加新字符
+                        element.innerHTML = text.substring(0, index + 1) + '▌';
+                        index++;
+                    } else {
+                        clearInterval(typeInterval);
+                        element.innerHTML = text; // 最终移除光标
+                        resolve();
+                    }
+                    container.scrollTo(0, container.scrollHeight);
+                }, 50);
+            });
+        }
+
+        // 修复3：完善错误处理流程
         async function sendMessage() {
+            if (currentBotBubble) return;
+
             const input = document.getElementById('message-input');
             const sendBtn = document.getElementById('send-button');
             const message = input.value.trim();
@@ -314,24 +349,28 @@
             sendBtn.disabled = true;
             input.value = '';
             input.style.height = 'auto';
-            appendMessage(message, true);
+            
+            // 创建用户消息
+            createMessageElement(true, message);
 
             const typingIndicator = document.getElementById('typing-indicator');
             typingIndicator.classList.add('active');
 
             try {
-                // 请求处理（含60秒超时，如果AI响应超过60S，则报错“”）
+                // 创建唯一的机器人消息气泡
+                currentBotBubble = createMessageElement(false);
+                
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-                const response = await fetch('http://frp-oak.com:14882/api/generate', {
+                const response = await fetch('http://frp-add.com:12318/api/generate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest'
                     },
                     body: JSON.stringify({
-                        model: "Smegmma:latest",
+                        model: "DeepSEX_7b_Q4:latest",
                         prompt: SYSTEM_PROMPT + '\n' + chatHistory.join('\n') + '\n用户：' + message + '\n助手：',
                         stream: false,
                         options: { temperature: 0.4, top_p: 0.7 }
@@ -340,58 +379,31 @@
                 });
                 clearTimeout(timeoutId);
 
-                // 处理HTTP错误
-                if (!response.ok) {
-                    const statusGroup = Math.floor(response.status / 100);
-                    const errorMap = {
-                        4: `请求错误 (${response.status})`,
-                        5: `服务器错误 (${response.status})`
-                    };
-                    throw new Error(errorMap[statusGroup] || `HTTP错误 (${response.status})`);
-                }
-
+                if (!response.ok) throw new Error(`HTTP错误 (${response.status})`);
+                
                 const data = await response.json();
-                
-                // 处理业务错误
-                if (data.error) {
-                    const errorMsg = data.error.includes('context') ? 
-                        '对话过长，请开始新对话' : '模型处理失败';
-                    throw new Error(errorMsg);
-                }
-
+                if (data.error) throw new Error(data.error);
                 if (!data.response?.trim()) throw new Error('空响应内容');
-                
-                const fullResponse = data.response;
-                appendMessage(fullResponse, false);
-                chatHistory.push(`用户：${message}`, `助手：${fullResponse}`);
+
+                // 执行逐字输出
+                await typeWriter(data.response, currentBotBubble);
+                chatHistory.push(`用户：${message}`, `助手：${data.response}`);
 
             } catch (error) {
-                console.error('[DEBUG] 完整错误:', error);
-                
-                // 错误类型映射
-                const errorMessages = {
-                    'AbortError': '请求超时，请稍后重试',
-                    'NetworkError': '网络连接失败',
-                    'Failed to fetch': '无法连接服务器',
-                    '请求错误': '请求参数错误',
-                    '服务器错误': '服务器暂时不可用',
-                    '空响应内容': '模型返回了空内容',
-                    '对话过长': '对话过长，请开始新对话'
-                };
-
-                const friendlyMessage = Object.entries(errorMessages).find(([key]) => 
-                    error.message.includes(key)
-                )?.[1] || '消息发送失败，请重试';
-
-                appendMessage(friendlyMessage, false);
-
+                console.error('[ERROR]', error);
+                // 修复4：正确显示错误消息
+                currentBotBubble.innerHTML = error.message.includes('aborted') ? 
+                    '请求超时，请稍后重试' : 
+                    '服务暂时不可用';
+                currentBotBubble.style.color = 'var(--primary)';
             } finally {
+                currentBotBubble = null;
                 sendBtn.disabled = false;
                 typingIndicator.classList.remove('active');
             }
         }
 
-        // 事件监听器
+        /* 保留所有原有事件监听器 */
         document.getElementById('send-button').addEventListener('click', sendMessage);
         document.getElementById('message-input').addEventListener('keydown', e => {
             if (e.key === 'Enter' && !e.shiftKey && !document.getElementById('send-button').disabled) {
@@ -404,7 +416,7 @@
             this.style.height = this.scrollHeight + 'px';
         });
 
-        // 表情选择器
+        // 保留原有表情选择器逻辑
         const emojiButton = document.getElementById('emoji-button');
         const emojiPicker = document.getElementById('emoji-picker');
         emojiButton.addEventListener('click', () => {
