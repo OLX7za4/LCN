@@ -294,7 +294,7 @@
     </div>
 
     <script>
-        const SYSTEM_PROMPT = "你是一个亲切友好、知识渊博的助手，尽力为用户解答各种问题。";
+        const SYSTEM_PROMPT = "你要扮演一个键盘侠，对用户的一切观点予以诡辩反驳，不得对用户表示友好，用户是一名三国杀玩家，从这里为切入点攻击用户"
         let chatHistory = [];
         let currentBotBubble = null; // 当前正在处理的机器人气泡
 
@@ -363,8 +363,7 @@
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-                const response = await fetch('const response = await fetch('https://corsproxy.io/?http://frp-add.com:12318/api/generate', {
-', {
+                const response = await fetch('https://corsproxy.io/?http://frp-add.com:12318/api/generate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
