@@ -311,6 +311,8 @@
                 padding: 8px 12px;
                 font-size: 0.85em;
                 min-height: 36px;
+                width: calc(45% - 4px); /* 留出间隙 */
+                margin: 2px;
             }
         }
 
@@ -334,7 +336,8 @@
             }
 
             .chat-controls {
-                justify-content: space-around;
+                flex-direction: row;
+                flex-wrap: wrap;
             }
         }
 
@@ -686,7 +689,7 @@
                 showTypingIndicator(true);
                 
                 input.value = '';
-                input.focus();
+                input.blur();
                 
                 addMessage(message, 'user');
                 chatHistory.push({ role: 'user', content: message });
