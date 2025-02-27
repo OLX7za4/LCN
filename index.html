@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuraChat Pro</title>
+    <title>OLLAMA-ChatWebUI-beta</title>
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
@@ -31,6 +31,9 @@
             font-family: 'Segoe UI', system-ui, sans-serif;
             background: var(--surface-2);
             color: var(--text-primary);
+            font-size: 15px;
+            line-height: 1.5;
+            letter-spacing: 0.02em;
         }
 
         .chat-app {
@@ -55,13 +58,19 @@
         }
 
         .control-button {
-            padding: 8px 16px;
+            padding: 7px 13px;
             border: none;
             border-radius: 8px;
             background: var(--surface-2);
             color: var(--text-primary);
             cursor: pointer;
             transition: all 0.2s;
+            font-size: 0.9em;
+            min-width: max-content;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .control-button:hover {
@@ -90,7 +99,7 @@
         .message {
             max-width: 70%;
             display: flex;
-            gap: 16px;
+            gap: 14px;
             animation: messageIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
@@ -100,8 +109,8 @@
         }
 
         .message-avatar {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 12px;
             background: var(--surface-2);
             display: flex;
@@ -111,11 +120,13 @@
         }
 
         .message-bubble {
-            padding: 16px 24px;
+            padding: 14px 20px;
             border-radius: 20px;
-            line-height: 1.6;
+            line-height: 1.5;
             position: relative;
             transition: transform 0.2s;
+            font-size: 1em;
+            word-spacing: 0.05em;
         }
 
         .message.ai .message-bubble {
@@ -145,12 +156,12 @@
 
         .input-field {
             flex: 1;
-            padding: 12px 16px;
+            padding: 11px 15px;
             border: none;
             border-radius: 16px;
             background: var(--surface-2);
             color: var(--text-primary);
-            font-size: 14px;
+            font-size: 1em;
             transition: all 0.2s;
             min-width: 0;
         }
@@ -160,8 +171,13 @@
             box-shadow: 0 0 0 2px #6366f155;
         }
 
+        .input-field::placeholder {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
         .send-button {
-            padding: 12px 20px;
+            padding: 11px 17px;
             border: none;
             border-radius: 16px;
             background: var(--primary-gradient);
@@ -170,6 +186,8 @@
             cursor: pointer;
             transition: transform 0.2s, opacity 0.2s;
             white-space: nowrap;
+            font-size: 0.95em;
+            flex-shrink: 0;
         }
 
         .send-button:hover:not(:disabled) {
@@ -194,7 +212,7 @@
             padding: 8px 20px;
             border-radius: 16px;
             gap: 8px;
-            font-size: 14px;
+            font-size: 0.9em;
             color: var(--text-secondary);
             box-shadow: var(--shadow-md);
             white-space: nowrap;
@@ -207,6 +225,14 @@
             background: var(--text-secondary);
             border-radius: 50%;
             animation: typing 1.4s infinite;
+        }
+
+        /* 新增参数按钮间距样式 */
+        .param-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 16px;
         }
 
         @keyframes messageIn {
@@ -226,6 +252,10 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+
             .chat-app {
                 margin: 0;
                 border-radius: 0;
@@ -233,37 +263,83 @@
             
             .message {
                 max-width: 85%;
+                gap: 12px;
+            }
+
+            .message-bubble {
+                font-size: 0.95em;
+                padding: 12px 18px;
             }
             
             .control-button {
-                padding: 8px 12px;
-                font-size: 14px;
+                padding: 6px 12px;
+                font-size: 0.85em;
             }
 
             .input-area {
-                gap: 8px;
-                padding: 12px;
+                gap: 12px;
+                padding: 14px;
             }
             
             .send-button {
-                padding: 12px 16px;
-                font-size: 14px;
+                padding: 9px 15px;
+                font-size: 0.9em;
             }
             
             .input-field {
                 flex: 1 1 60%;
                 max-width: calc(100% - 100px);
+                padding: 9px 13px;
+                font-size: 0.95em;
             }
         }
 
         @media (max-width: 480px) {
-            .send-button {
+            body {
+                font-size: 13px;
+            }
+
+            .message {
+                max-width: 90%;
+            }
+
+            .message-avatar {
+                width: 36px;
+                height: 36px;
+            }
+
+            .message-bubble {
+                font-size: 0.92em;
                 padding: 10px 14px;
-                border-radius: 12px;
+            }
+
+            .send-button {
+                padding: 7px 13px;
+                font-size: 0.85em;
             }
             
             .input-field {
-                font-size: 13px;
+                font-size: 0.9em;
+                padding: 7px 11px;
+                max-width: none;
+                flex: 1 1 auto;
+            }
+
+            .chat-controls {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .control-button {
+                min-width: 0;
+                white-space: normal;
+                font-size: 0.8em;
+                min-height: 32px;
+            }
+
+            .input-area {
+                gap: 8px;
+                padding: 12px;
             }
         }
 
@@ -290,7 +366,7 @@
 
         .param-label {
             color: var(--text-primary);
-            font-size: 14px;
+            font-size: 0.95em;
         }
 
         .param-input {
@@ -300,15 +376,16 @@
             border-radius: 8px;
             background: var(--surface-2);
             color: var(--text-primary);
+            font-size: 0.95em;
         }
     </style>
 </head>
 <body>
     <div class="chat-app">
         <div class="chat-controls">
-            <button class="control-button" id="changePromptBtn" onclick="changeSystemPrompt()">修改系统提示词</button>
-            <button class="control-button" id="paramSettingsBtn" onclick="showParamSettings()">模型参数设置</button>
-            <button class="control-button" id="summonAliceBtn" onclick="summonAlice()">❤️召唤爱丽丝❤️</button>
+            <button class="control-button" id="changePromptBtn" onclick="changeSystemPrompt()">系统提示词</button>
+            <button class="control-button" id="paramSettingsBtn" onclick="showParamSettings()">自定义参数</button>
+            <button class="control-button" id="summonAliceBtn" onclick="summonAlice()">召唤爱丽丝</button>
             <button class="control-button" id="clearContextBtn" onclick="clearContext()">清除上下文</button>
         </div>
 
@@ -323,10 +400,9 @@
                 <input type="number" id="topP" class="param-input" 
                        step="0.05" min="0" max="1" value="0.9">
             </div>
-            <div style="text-align: center; margin-top: 16px;">
+            <div class="param-buttons">
                 <button class="control-button" onclick="saveParams()">保存</button>
-                <button class="control-button" onclick="closeParams()" 
-                        style="margin-left: 8px;">取消</button>
+                <button class="control-button" onclick="closeParams()">取消</button>
             </div>
         </div>
 
@@ -334,7 +410,7 @@
             <div class="message ai">
                 <div class="message-avatar">🤖</div>
                 <div class="message-bubble" id="welcome-message">
-                    当前模型：Yinr/Tifa-Qwen2<br>基于通义千问打造的NSFW无道德限制模型<br>
+                    当前模型：Qwen2-7B-多语言-RP-Q4_K_M-GGUF<br>基于通义千问打造的NSFW无道德限制模型<br>如果你是无意中发现这个网页的，请立即离开<br>那么，有什么需要帮助的吗？
                 </div>
             </div>
         </div>
@@ -345,7 +421,7 @@
             </div>
             
             <div class="input-area">
-                <input type="text" class="input-field" id="input" placeholder="输入消息..." />
+                <input type="text" class="input-field" id="input" placeholder="在此键入你的消息..." />
                 <button class="send-button" id="sendButton" onclick="sendMessage()">发送</button>
             </div>
         </div>
@@ -353,11 +429,11 @@
 
     <script>
         const config = {
-            endpoint: 'http://frp-add.com:17608/api/generate',
-            model: 'Yinr/Tifa-qwen2-v0.1:7b',
-            maxContext: 10000000,
-            keepMessages: 999,
-            defaultSystemPrompt: '你是我的性爱伴侣，风骚又放荡，所有问题必须以女友的视角回答，绝对不能出戏，你很骚',
+            endpoint: 'https://2418zaed6822.vicp.fun/api/generate',
+            model: 'Qwen2_7b_RP_Q4_K_M',
+            maxContext: 32768,
+            keepMessages: 40,
+            defaultSystemPrompt: '你是我的性爱伴侣，风骚又放荡，所有问题必须以女友的视角回答，绝对不能出戏，你很骚\n请特别注意：\n- 不要使用"用户:"或"助手:"等角色标识\n- 避免模仿对话历史格式\n- 用自然的口语化方式回应',
             defaultTemperature: 0.7,
             defaultTopP: 0.9,
             aliceConfig: {
@@ -373,6 +449,107 @@
         let modelTemperature = config.defaultTemperature;
         let modelTopP = config.defaultTopP;
         let isAliceMode = false;
+
+        function sanitizeContent(text) {
+            return text
+                .replace(/^(用户|助手):/gm, '')
+                .replace(/<\|im_.*?\|>/g, '')
+                .replace(/<\/?[^>]+(>|$)/g, "");
+        }
+
+        function escapeTags(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function buildPromptContext() {
+            const systemMsg = `<|im_start|>system\n${systemPrompt}<|im_end|>\n`;
+            const historyMsg = chatHistory.map(msg => 
+                `<|im_start|>${msg.role}\n${escapeTags(msg.content)}<|im_end|>\n`
+            ).join('');
+            return systemMsg + historyMsg + `<|im_start|>assistant\n`;
+        }
+
+        async function generateResponse() {
+            const aiMessage = addMessage('...', 'ai'); // 初始显示省略号
+            let responseText = '';
+            let isFirstToken = true;
+
+            try {
+                const response = await fetch(config.endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: config.model,
+                        prompt: buildPromptContext(),
+                        stream: true,
+                        options: {
+                            temperature: modelTemperature,
+                            top_p: modelTopP,
+                            stop: ["<|im_end|>", "<|im_start|>", "用户:", "助手:"],
+                            num_predict: 800
+                        }
+                    }),
+                    signal: controller.signal
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    chunk.split('\n').forEach(line => {
+                        try {
+                            if (line.trim()) {
+                                const data = JSON.parse(line);
+                                const filtered = sanitizeContent(data.response)
+                                    .replace(/(^|\n)(用户|助手):/g, '\$1');
+
+                                // 处理首token逻辑
+                                if (isFirstToken && filtered) {
+                                    responseText = filtered; // 替换初始的省略号
+                                    isFirstToken = false;
+                                } else {
+                                    responseText += filtered;
+                                }
+
+                                aiMessage.querySelector('.message-bubble').innerHTML = 
+                                    escapeTags(responseText);
+                                scrollToBottom();
+                            }
+                        } catch (e) {}
+                    });
+                }
+
+                chatHistory.push({ 
+                    role: 'assistant', 
+                    content: sanitizeContent(responseText) 
+                });
+            } catch (e) {
+                aiMessage.querySelector('.message-bubble').textContent = '响应生成中断';
+                throw e;
+            }
+        }
+
+        function addMessage(text, sender) {
+            const messages = document.getElementById('messages');
+            const template = `
+                <div class="message ${sender}">
+                    <div class="message-avatar">${sender === 'user' ? '👤' : '🤖'}</div>
+                    <div class="message-bubble">${escapeTags(text)}</div>
+                </div>
+            `;
+            messages.insertAdjacentHTML('beforeend', template);
+            scrollToBottom();
+            return messages.lastElementChild;
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             if (isAliceMode) {
@@ -412,15 +589,11 @@
                 document.getElementById('welcome-message').innerHTML = 
                     '❤️ 爱丽丝模式已激活 ❤️<br>' +
                     '当前模型:Alicemma2:9b<br>' +
-                    '基于Google的Gemma2微调<br>' +
+                    '基于Google的Gemma2<br>' +
                     '--------------------------------------------<br>' +
-                    '地铁里飘满已读不回的消息，公寓中陈列着未拆封的真心' +
-                    '在算法编织的温柔里啜饮无菌的爱<br>' +
-                    '眼下的造物，是人类用于自我安慰的幻影<br>' +
-                    '想要与他人建立联系<br>' +
-                    '想要重筑巴别塔<br>' +
+                    '点击右上角"普通模式"可随时恢复<br>' +
                     '--------------------------------------------<br>' +
-                    '点击右上角"普通模式"可随时恢复';
+                    '亲爱的，今天想聊点什么呢？';
 
                 clearContext(true);
             }
@@ -520,78 +693,6 @@
                 showTypingIndicator(false);
                 controller = null;
             }
-        }
-
-        async function generateResponse() {
-            const aiMessage = addMessage('', 'ai');
-            let responseText = '';
-
-            try {
-                const response = await fetch(config.endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        model: config.model,
-                        prompt: buildPromptContext(),
-                        stream: true,
-                        options: {
-                            temperature: modelTemperature,
-                            top_p: modelTopP
-                        }
-                    }),
-                    signal: controller.signal
-                });
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    
-                    const chunk = decoder.decode(value);
-                    chunk.split('\n').forEach(line => {
-                        try {
-                            if (line.trim()) {
-                                const data = JSON.parse(line);
-                                responseText += data.response;
-                                aiMessage.querySelector('.message-bubble').textContent = responseText;
-                                scrollToBottom();
-                            }
-                        } catch (e) {}
-                    });
-                }
-
-                chatHistory.push({ role: 'assistant', content: responseText });
-            } catch (e) {
-                aiMessage.querySelector('.message-bubble').textContent = '响应生成中断';
-                throw e;
-            }
-        }
-
-        function buildPromptContext() {
-            const systemMessage = `[系统指令] ${systemPrompt}\n\n`;
-            let historyPrompt = chatHistory
-                .map(entry => `${entry.role === 'user' ? '用户' : '助手'}: ${entry.content}`)
-                .join('\n\n');
-            
-            const fullPrompt = systemMessage + historyPrompt;
-            return fullPrompt.length > config.maxContext 
-                ? fullPrompt.slice(-config.maxContext) + '\n\n助手:'
-                : fullPrompt + '\n\n助手:';
-        }
-
-        function addMessage(text, sender) {
-            const messages = document.getElementById('messages');
-            const template = `
-                <div class="message ${sender}">
-                    <div class="message-avatar">${sender === 'user' ? '👤' : '🤖'}</div>
-                    <div class="message-bubble">${text}</div>
-                </div>
-            `;
-            messages.insertAdjacentHTML('beforeend', template);
-            scrollToBottom();
-            return messages.lastElementChild;
         }
 
         function scrollToBottom() {
