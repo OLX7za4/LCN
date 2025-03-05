@@ -202,30 +202,6 @@
             transform: none !important;
         }
 
-        .typing-indicator {
-            display: none;
-            position: absolute;
-            top: -45px;
-            left: 49%;
-            transform: translateX(-50%);
-            background: var(--surface-2);
-            padding: 8px 20px;
-            border-radius: 16px;
-            gap: 8px;
-            font-size: 0.9em;
-            color: var(--text-secondary);
-            box-shadow: var(--shadow-md);
-            white-space: nowrap;
-            align-items: center;
-        }
-
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--text-secondary);
-            border-radius: 50%;
-            animation: typing 1.4s infinite;
-        }
 
         .param-buttons {
             display: flex;
@@ -440,18 +416,10 @@
                 </div>
             </div>
         </div>
-        
-        <div class="input-container">
-            <div class="typing-indicator" id="typing">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <span>对方正在输入中</span>
-            </div>
             
             <div class="input-area">
                 <input type="text" class="input-field" id="input" placeholder="在此键入你的消息..." />
-                <button class="send-button" id="sendButton" onclick="sendMessage()">发送</button>
+                <button class="send-button" id="sendButton" onclick="sendMessage(event)">发送</button>
             </div>
         </div>
     </div>
@@ -504,7 +472,7 @@
         }
 
         async function generateResponse() {
-            const aiMessage = addMessage('...', 'ai');
+            const aiMessage = addMessage('让我想想...', 'ai');
             let responseText = '';
             let isFirstToken = true;
 
@@ -561,10 +529,59 @@
                     content: sanitizeContent(responseText) 
                 });
             } catch (e) {
-                aiMessage.querySelector('.message-bubble').textContent = '响应生成中断';
+                aiMessage.querySelector('.message-bubble').textContent = '请求中断，请重试';
                 throw e;
             }
         }
+
+        async function sendMessage(event) {
+            const sendBtn = document.getElementById('sendButton');
+            if (sendBtn.disabled) {
+                event.preventDefault(); // 阻止默认行为
+                return;
+            }
+            if (isGenerating) return;
+
+            const input = document.getElementById('input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            sendBtn.disabled = true;
+            
+            try {
+                isGenerating = true;
+                controller = new AbortController();
+                
+                input.value = '';
+                // 只在发送消息后失焦
+                if (isMobileDevice()) {
+                    input.blur();
+                }
+                
+                addMessage(message, 'user');
+                chatHistory.push({ role: 'user', content: message });
+
+                if (chatHistory.length > config.keepMessages * 2) {
+                    chatHistory = chatHistory.slice(-config.keepMessages * 2);
+                }
+
+                await generateResponse();
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    const messages = document.getElementById('messages');
+                    if (messages.children.length > 1) {
+                        messages.removeChild(messages.lastChild);
+                    }
+                }
+            } finally {
+                isGenerating = false;
+                sendBtn.disabled = false;
+                controller = null;
+            }
+        }
+
+
+
 
         function addMessage(text, sender) {
             const messages = document.getElementById('messages');
@@ -609,7 +626,6 @@
 
                     document.getElementById('welcome-message').innerHTML = 
                         '当前模型：Qwen2-7B-多语言-RP-Q4_K_M-GGUF<br>基于通义千问打造的NSFW无道德限制模型。<br>默认系统提示词为“你是一名猫娘”<br>那么，有什么需要帮助的吗？';
-
                     clearContext(true);
                 }
             } else {
@@ -631,7 +647,6 @@
 
                     document.getElementById('welcome-message').innerHTML = 
                         '当前模型:Alicemma2:9b<br>基于Google的Gemma2微调<br>-------------------------------<br>此模型具有严格的道德限制<br>如需使用NSFW无监管模型<br>请移步至“自定义模式”<br>-------------------------------<br>她是你的温柔女友<br>那么，亲爱的，今天想聊点什么呢？';
-
                     clearContext(true);
                 }
             }
@@ -709,51 +724,13 @@
             }
         }
 
-        async function sendMessage() {
-            if (isGenerating) return;
-
-            const input = document.getElementById('input');
-            const sendBtn = document.getElementById('sendButton');
-            const message = input.value.trim();
-            if (!message) return;
-
-            sendBtn.disabled = true;
-            
-            try {
-                isGenerating = true;
-                controller = new AbortController();
-                showTypingIndicator(true);
-                
-                input.value = '';
-                input.blur();
-                
-                addMessage(message, 'user');
-                chatHistory.push({ role: 'user', content: message });
-
-                if (chatHistory.length > config.keepMessages * 2) {
-                    chatHistory = chatHistory.slice(-config.keepMessages * 2);
-                }
-
-                await generateResponse();
-            } catch (error) {
-                if (error.name !== 'AbortError') {
-                    addMessage('请求中断，请重试', 'ai');
-                }
-            } finally {
-                isGenerating = false;
-                sendBtn.disabled = false;
-                showTypingIndicator(false);
-                controller = null;
-            }
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
 
         function scrollToBottom() {
             const feed = document.getElementById('messages');
             feed.scrollTop = feed.scrollHeight;
-        }
-
-        function showTypingIndicator(show) {
-            document.getElementById('typing').style.display = show ? 'flex' : 'none';
         }
 
         document.getElementById('input').addEventListener('keydown', (e) => {
